@@ -10,10 +10,12 @@
 
 void setup();
 void loop();
+int debounced(int buttonPin);
 
+int buttonPin = 5;
 int thumbPin = 3;    // select the input pin for the potentiometer
 int indexPin = 4;    // select the input pin for the potentiometer
-int midPin = 5;    // select the input pin for the potentiometer
+int midPin = 15;    // select the input pin for the potentiometer
 int clawPin = 6;
 int wristPin = 7;
 int armPin = 14;
@@ -29,34 +31,56 @@ const int armIn1 = 8;
 const int armIn2 = 9;
 const int wristIn1 = 12;
 const int wristIn2 = 13;
-const int maxClaw = 475;
+const int maxClaw = 460;
 const int maxWrist = 529;
 const int maxArm = 526;
 const int minClaw = 388;
-const int minWrist = 450;
+const int minWrist = 400;
 const int minArm = 427;
-const int maxThumb = 699;
-const int maxIndex = 678;
-const int maxMid = 572;
-const int minThumb = 648;
-const int minIndex = 627;
-const int minMid = 663;
-int mappedValue = 0;
+int maxThumb = 680;
+int maxIndex = 660;
+int maxMid = 560;
+int minThumb = 625;
+int minIndex = 625;
+int minMid = 440;
+
+int reading;
+int buttonState = HIGH;
+int lastButtonState = LOW;
+long lastDebounceTime = 0;  // the last time the output pin was toggled
+long debounceDelay = 100;    // the debounce time; increase if the output flickers
+long currentTime = 0;
+
+
+void debounced(){
+  reading = digitalRead(buttonPin);
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+  currentTime = millis();
+  if ((currentTime - lastDebounceTime) > debounceDelay) {
+    buttonState = reading;
+  }
+  lastButtonState = reading;
+
+}
 
 void setup() {
   Serial.begin(9600);
-  digitalWrite(armIn1, LOW);
-  digitalWrite(armIn2, LOW);
-  digitalWrite(clawIn1, LOW);
-  digitalWrite(clawIn2, LOW);
-  digitalWrite(wristIn1, LOW);
-  digitalWrite(wristIn2, LOW);
+  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(armIn1, OUTPUT);
   pinMode(armIn2, OUTPUT);
   pinMode(clawIn1, OUTPUT);
   pinMode(clawIn2, OUTPUT);
   pinMode(wristIn1, OUTPUT);
   pinMode(wristIn2, OUTPUT);
+  digitalWrite(armIn1, LOW);
+  digitalWrite(armIn2, LOW);
+  digitalWrite(clawIn1, LOW);
+  digitalWrite(clawIn2, LOW);
+  digitalWrite(wristIn1, LOW);
+  digitalWrite(wristIn2, LOW);
+
 }
 
 void loop() {
@@ -114,11 +138,11 @@ void loop() {
   }
 
 	// Middle finger to wrist
-	if ((midVal-10 > maxMid) && (wristVal > minWrist)){
+	if ((midVal > maxMid) && (wristVal > minWrist)){
 	  // to go up
 	 digitalWrite(wristIn2, LOW);
 	 digitalWrite(wristIn1, HIGH);
-	} else if ((midVal+10 < minMid) && (wristVal < maxWrist)){
+	} else if ((midVal < minMid) && (wristVal < maxWrist)){
 	  // to go down
 	 digitalWrite(wristIn1, LOW);
 	 digitalWrite(wristIn2, HIGH);
